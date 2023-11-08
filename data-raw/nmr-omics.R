@@ -89,3 +89,16 @@ lipidomics
 usethis::use_git_ignore("data-raw/nmr-omics/")
 
 r3::check_project_setup_advanced()
+
+?usethis::use_package
+
+usethis::use_package("readxl")
+usethis::use_package("dplyr")
+usethis::use_package("tidyr")
+usethis::use_package("here")
+usethis::use_package("usethis")
+usethis::use_package("fs")
+usethis::use_package("snakecase")
+usethis::use_package("stringr")
+usethis::use_package("readr")
+
