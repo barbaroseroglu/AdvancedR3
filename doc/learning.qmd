@@ -40,6 +40,25 @@ descriptive_stats <- function(data) {
 
 ```
 
+```{r}
+metabolite_distribution_plot <- ggplot(lipidomics, 
+                                       aes(x = value)) +
+    geom_histogram() +
+    facet_wrap(vars(metabolite), scales = "free")
+
+metabolite_distribution_plot
+
+
+plot_distributions <- function(data) {
+     ggplot(data,
+    aes(x = value)) +
+    geom_histogram() +
+    facet_wrap(vars(metabolite), scales = "free")
+    
+}
+    
+```
+
 ## This is poorly formatted
 
 -   This is item 1
