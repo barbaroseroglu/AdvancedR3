@@ -18,8 +18,7 @@ descriptive_stats <- function(data) {
 #' @return plots of each lipid
 #'
 plot_distributions <- function(data) {
-    ggplot(data,
-           aes(x = value)) +
-        geom_histogram() +
-        facet_wrap(vars(metabolite), scales = "free")
+    data %>% ggplot2::ggplot(ggplot2::aes(x = value)) +
+        ggplot2::geom_histogram() +
+        ggplot2::facet_wrap(ggplot2::vars(metabolite), scales = "free")
 }
