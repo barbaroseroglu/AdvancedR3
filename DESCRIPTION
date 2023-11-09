@@ -16,7 +16,9 @@ Imports:
     targets,
     tidyr,
     usethis,
-    ggplot2
+    ggplot2,
+    tarchetypes,
+    quarto
 Encoding: UTF-8
 Suggests: 
     gitcreds,
