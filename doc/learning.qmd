@@ -1,6 +1,9 @@
 ---
 title: "Draft Quarto document"
-author: "Your Name"
+author: 
+    - name: "Barbaros Eroglu"
+      affiliations:
+        - name: German Institute of Human Nutrition
 format: html
 editor: 
     markdown:
