@@ -39,13 +39,13 @@ column_values_to_snake_case <- function(data, cols) {
 #' @param the lipidomics dataset
 #'
 #' @return a wide dataframe
-metabolites_to_wider <-  function(data) {
-    data %>%
+metabolites_to_wider <- function(data) {
+  data %>%
     tidyr::pivot_wider(
-        names_from = metabolite,
-        values_from = value,
-        values_fn = mean,
-        names_prefix = "metabolite_"
+      names_from = metabolite,
+      values_from = value,
+      values_fn = mean,
+      names_prefix = "metabolite_"
     )
 }
 
@@ -56,10 +56,10 @@ metabolites_to_wider <-  function(data) {
 #'
 #' @return a dataframe
 create_recipe_spec <- function(data, metabolite_variable) {
-    recipes::recipe(data) %>%
-        recipes::update_role({{ metabolite_variable}}, age, gender, new_role = "predictor") %>%
-        recipes::update_role(class, new_role =  "outcome") %>%
-        recipes::step_normalize(tidyselect::starts_with("metabolite_"))
+  recipes::recipe(data) %>%
+    recipes::update_role({{ metabolite_variable }}, age, gender, new_role = "predictor") %>%
+    recipes::update_role(class, new_role = "outcome") %>%
+    recipes::step_normalize(tidyselect::starts_with("metabolite_"))
 }
 
 #' Create a workflow object of the model and the transformations
@@ -69,9 +69,9 @@ create_recipe_spec <- function(data, metabolite_variable) {
 #'
 #' @return a workflow object
 create_model_workflow <- function(model_specs, recipe_specs) {
-    workflows::workflow() %>%
-        workflows::add_model(model_specs) %>%
-        workflows::add_recipe(recipe_specs)
+  workflows::workflow() %>%
+    workflows::add_model(model_specs) %>%
+    workflows::add_recipe(recipe_specs)
 }
 
 
@@ -82,9 +82,9 @@ create_model_workflow <- function(model_specs, recipe_specs) {
 #' @return a dataframe
 #'
 tidy_model_output <- function(workflow_fitted_model) {
-    workflow_fitted_model %>%
-        workflows::extract_fit_parsnip() %>%
-        broom::tidy(exponentiate = TRUE)
+  workflow_fitted_model %>%
+    workflows::extract_fit_parsnip() %>%
+    broom::tidy(exponentiate = TRUE)
 }
 
 #' Convert the long form dataset into a list of wide form dataframes
@@ -94,10 +94,10 @@ tidy_model_output <- function(workflow_fitted_model) {
 #' @return a list of data frames
 #'
 split_by_metabolite <- function(data) {
-    data %>%
-        column_values_to_snake_case(metabolite) %>%
-        dplyr::group_split(metabolite) %>%
-        purrr::map(metabolites_to_wider)
+  data %>%
+    column_values_to_snake_case(metabolite) %>%
+    dplyr::group_split(metabolite) %>%
+    purrr::map(metabolites_to_wider)
 }
 
 #' Generate the results of the model
@@ -106,29 +106,44 @@ split_by_metabolite <- function(data) {
 #'
 #' @return A data frame
 generate_model_results <- function(data) {
-    create_model_workflow(
-        parsnip::logistic_reg() %>%
-            parsnip::set_engine("glm"),
-        data %>%
-            create_recipe_spec(tidyselect::starts_with("metabolite_"))
-    ) %>%
-        parsnip::fit(data) %>%
-        tidy_model_output()
+  create_model_workflow(
+    parsnip::logistic_reg() %>%
+      parsnip::set_engine("glm"),
+    data %>%
+      create_recipe_spec(tidyselect::starts_with("metabolite_"))
+  ) %>%
+    parsnip::fit(data) %>%
+    tidy_model_output()
 }
 
 
-#' Presenting model results for each metabolite in one table
+#' Add the original metabolite names, not in snakecase form
 #'
 #' @param model_results
 #' @param data the lipidomics dataset
 #'
 #' @return a data frame
 add_original_metabolite_names <- function(model_results, data) {
-    data %>%
-        dplyr::select(metabolite) %>%
-        dplyr::mutate(term = metabolite) %>%
-        column_values_to_snake_case() %>%
-        dplyr::mutate(term = stringr::str_c("metabolite_", term)) %>%
-        dplyr::distinct(term, metabolite) %>%
-        dplyr::right_join(model_results, by = "term" )
+  data %>%
+    dplyr::select(metabolite) %>%
+    dplyr::mutate(term = metabolite) %>%
+    column_values_to_snake_case() %>%
+    dplyr::mutate(term = stringr::str_c("metabolite_", term)) %>%
+    dplyr::distinct(term, metabolite) %>%
+    dplyr::right_join(model_results, by = "term")
 }
+
+#' Calculate the estimates for each metabolite
+#'
+#' @param data the original lipidomics dataset
+#'
+#' @return a data frame
+calculate_estimates <- function(data) {
+    data %>%
+        split_by_metabolite() %>%
+        purrr::map(generate_model_results) %>%
+        purrr::list_rbind() %>%
+        dplyr::filter(stringr::str_detect(term, "metabolite_")) %>%
+        add_original_metabolite_names(data)
+}
+
