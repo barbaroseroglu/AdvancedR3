@@ -9,6 +9,9 @@ editor_options:
 
 This project is about learning how to collaborate in R
 
+Check out the project website
+https://barbaroseroglu.github.io/AdvancedR3/
+
 # Brief description of folder and file contents
 
 The following folders contain:
